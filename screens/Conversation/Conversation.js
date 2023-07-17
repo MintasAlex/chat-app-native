@@ -14,11 +14,14 @@ import authHeader from "../../services/auth-header";
 import Stomp from "stompjs";
 import SockJS from "sockjs-client";
 
+const MESSAGE_CHUNK_SIZE = 10; // Number of messages to load per chunk
+
 export default function Conversation({ route, navigation }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [visibleMessages, setVisibleMessages] = useState([]); // Visible messages
   const [inputMessage, setInputMessage] = useState("");
 
   let stompClient = null;
@@ -75,13 +78,33 @@ export default function Conversation({ route, navigation }) {
         conversationId
       );
       setMessages(messages.data);
+      setVisibleMessages(messages.data.slice(-MESSAGE_CHUNK_SIZE));
+      scrollToBottom();
     } catch (err) {
       console.log(err);
     }
   };
 
+  const handleScroll = (event) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isScrolledToTop = contentOffset.y === 0;
+
+    if (isScrolledToTop && visibleMessages.length < messages.length) {
+      const startIndex = visibleMessages.length;
+      const endIndex = startIndex + MESSAGE_CHUNK_SIZE;
+      setVisibleMessages(messages.slice(-endIndex));
+
+      messagesScrollView.current.scrollTo({
+        y: layoutMeasurement.height,
+        animated: false,
+      });
+    }
+  };
+
   const scrollToBottom = () => {
-    messagesScrollView.current.scrollToEnd({ animated: true });
+    if (messagesScrollView.current) {
+      messagesScrollView.current.scrollToEnd({ animated: true });
+    }
   };
 
   useEffect(() => {
@@ -94,12 +117,7 @@ export default function Conversation({ route, navigation }) {
         );
         setConversation(conversation.data);
 
-        fetchMessages();
-
-        // const messages = await MessageService.getMessagesByConversationId(
-        //   conversationId
-        // );
-        // setMessages(messages.data);
+        await fetchMessages();
 
         setLoading(false);
       } catch (err) {
@@ -112,8 +130,6 @@ export default function Conversation({ route, navigation }) {
 
     connectToSocket();
 
-    scrollToBottom();
-
     return () => {
       stompClient.disconnect();
     };
@@ -121,19 +137,23 @@ export default function Conversation({ route, navigation }) {
 
   return (
     <SafeAreaView>
-      <ConversationHeader
-        navigation={navigation}
-        onContentSizeChange={scrollToBottom}
-        onLayout={scrollToBottom}
-      />
+      <ConversationHeader navigation={navigation} />
       {loading ? (
         <Text style={ConversationStyles.loading}>Loading...</Text>
       ) : (
         <View style={ConversationStyles.container}>
-          <ScrollView ref={messagesScrollView}>
-            {messages.map((message) => (
+          <ScrollView
+            ref={messagesScrollView}
+            // onContentSizeChange={scrollToBottom}
+            onLayout={scrollToBottom}
+            onScroll={handleScroll}
+          >
+            {visibleMessages.map((message) => (
               <Message key={message.id} message={message} />
             ))}
+            {/* {messages.map((message) => (
+              <Message key={message.id} message={message} />
+            ))} */}
           </ScrollView>
         </View>
       )}
