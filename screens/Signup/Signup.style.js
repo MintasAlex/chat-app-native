@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-const loginStyles = StyleSheet.create({
+const signupStyles = StyleSheet.create({
   container: {
     display: "flex",
     alignItems: "center",
@@ -13,7 +13,7 @@ const loginStyles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
-  loginForm: {
+  signupForm: {
     width: "80%",
   },
   textInput: {
@@ -22,12 +22,15 @@ const loginStyles = StyleSheet.create({
   button: {
     marginTop: 20,
   },
-  signupMessage: {
-    marginTop: 40,
-    color: "#3700B3",
-    opacity: 0.7,
-    fontWeight: "bold",
+  errorMessage: {
+    color: "red",
+    marginBottom: 10,
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 30,
   },
 });
 
-export default loginStyles;
+export default signupStyles;

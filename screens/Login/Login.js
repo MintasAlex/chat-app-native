@@ -45,7 +45,6 @@ export default function Login({ navigation }) {
     if (user) {
       navigation.navigate("Contacts");
     }
-
   }, []);
 
   return (
@@ -74,11 +73,12 @@ export default function Login({ navigation }) {
           style={loginStyles.button}
           onPress={handleLogin}
         />
-        {/* <Button
-          title="Get User"
+        <Text style={loginStyles.signupMessage}>Don't have an account? </Text>
+        <Button
+          title="Signup"
           style={loginStyles.button}
-          onPress={getCurrentUser}
-        /> */}
+          onPress={() => navigation.navigate("Signup")}
+        />
       </View>
     </SafeAreaView>
   );
